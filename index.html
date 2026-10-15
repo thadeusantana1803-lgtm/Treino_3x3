@@ -37,7 +37,7 @@ td:first-child,th:first-child{text-align:left}th{color:var(--mut);font-weight:60
 .d.part{background:var(--gold);color:var(--on);font-weight:700}.d.miss{border-color:var(--red);color:var(--red)}
 .d.x{background:var(--line)}.d.t{outline:2px solid var(--tx)}.d.sel{box-shadow:0 0 0 3px var(--mut)}
 .cal{display:flex;justify-content:space-between;align-items:center}
-.wk{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);gap:6px}
+.wk{flex-wrap:wrap;display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);gap:6px}
 .cp{font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid var(--gold);background:none;color:var(--gold);margin:2px}
 .cp.done{background:var(--grn);border-color:var(--grn);color:var(--on)}.cp.part{background:var(--gold);color:var(--on)}.cp.miss{border-color:var(--red);color:var(--red)}
 .ti{width:92px;text-align:center;font-size:22px;font-weight:700;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px;font-variant-numeric:tabular-nums}
@@ -59,6 +59,8 @@ td:first-child,th:first-child{text-align:left}th{color:var(--mut);font-weight:60
 :root[data-pal="woodland"] body{background:transparent}
 .in{background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:15px}
 *{-webkit-tap-highlight-color:transparent}button{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips .cp{flex:1 1 auto;margin:0;text-align:center;padding:10px 8px;font-size:13px}
+.tabs{flex-wrap:wrap}.tabs button{flex:1 1 30%}.sfg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}.sfg label{display:block}
 </style></head><body><main id="app"></main>
 <script>
 const app=document.getElementById('app'),$=id=>document.getElementById(id);
@@ -71,6 +73,7 @@ const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+pad(s%60)};
 const fmtT=s=>{s=Math.round(s||0);return pad(Math.floor(s/60))+':'+pad(s%60)};
 const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const dt=id=>new Date(id+'T12:00:00');
+const dm=id=>{const d=dt(id);return pad(d.getDate())+'/'+pad(d.getMonth()+1)};
 const fd=id=>{const d=dt(id);return DN[d.getDay()]+' '+pad(d.getDate())+'/'+pad(d.getMonth()+1)};
 const s3=a=>a.reduce((x,y)=>x+y,0);
 const tot=hs=>{const r=[0,0,0];hs.forEach(h=>h.reps.forEach((v,i)=>r[i]+=v));return r};
@@ -108,11 +111,11 @@ function beep(f,d){try{const o=A.createOscillator(),g=A.createGain();o.frequency
 function vib(n){try{navigator.vibrate&&navigator.vibrate(n||200)}catch(e){}}
 function pick(id){sel=id;tab='t';home();scrollTo(0,0)}
 function mv(n){M.m+=n;if(M.m<0){M.m=11;M.y--}if(M.m>11){M.m=0;M.y++}home()}
-const nav=()=>`<div class="tabs">${[['t','Treino 3×3'],['w','Meet Yourself Saturday'],['h','Hábitos'],['c','Calendário'],['a','Ajustes']].map(([k,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';home()">${l}</button>`).join('')}</div>`;
+const nav=()=>`<div class="tabs">${[['t','Treino 3×3'],['w','Meet Yourself Saturday'],['h','Hábitos'],['b','Corpo'],['c','Calendário'],['a','Ajustes']].map(([k,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';home()">${l}</button>`).join('')}</div>`;
 function home(){
  P=plan();T=iso(new Date());
  if(!M){const b=dt(T<S.start?S.start:T);M={y:b.getFullYear(),m:b.getMonth()}}
- app.innerHTML='<h1>3×3 · NO GYM PROTOCOL</h1>'+nav()+'<div id="rb">'+rbH()+'</div>'+(tab=='t'?vT():tab=='w'?vW():tab=='h'?vH():tab=='c'?vC():vA());
+ app.innerHTML='<h1>3×3 · NO GYM PROTOCOL</h1>'+nav()+'<div id="rb">'+rbH()+'</div>'+(tab=='t'?vT():tab=='w'?vW():tab=='h'?vH():tab=='c'?vC():tab=='b'?vB():vA());
 }
 function vT(){
  const cur=P.find(p=>p.id>=T&&st(p.id)!='done');
@@ -127,7 +130,7 @@ function vT(){
   <div class="sm" style="margin-top:6px">A cada <b>${fmt(c.iv)}</b>, faça as 3 séries em sequência e descanse até o próximo ciclo. ${c.rounds} rodadas · ${c.tot} reps · ~${Math.round(c.rounds*c.iv/60)} min.</div>
   ${s=='done'?`<div class="sm" style="margin-top:8px;color:var(--grn)">✓ Concluído em ${new Date(rc.d).toLocaleDateString('pt-BR')} · duração ${fmtT(rc.sec)}. Treino concluído fica só para consulta.</div>`:`<button class="btn" onclick="start()">${s=='part'?'REFAZER TREINO':'INICIAR TREINO'}</button>`}</div>`
   :`<div class="card sm">Nenhum treino previsto a partir de hoje. Toque em um dia do calendário para ver ou fazer um treino.</div>`;
- const wk=LV.map((l,i)=>`<div class="wk"><span class="lab">SEM ${i+1} · N${l}</span><span>${P.filter(p=>p.w==i+1).map(p=>`<button class="cp ${st(p.id)}" onclick="pick('${p.id}')">${fd(p.id).slice(0,6)}</button>`).join('')}</span></div>`).join('');
+ const wk=LV.map((l,i)=>`<div class="wk"><span class="lab">SEM ${i+1} · ${dm(dstr(S.start,i*7))} a ${dm(dstr(S.start,i*7+6))} · N${l}</span><span>${P.filter(p=>p.w==i+1).map(p=>`<button class="cp ${st(p.id)}" onclick="pick('${p.id}')">${fd(p.id)}</button>`).join('')}</span></div>`).join('');
  return nag()+card+`<div class="card"><div class="lab" style="margin-bottom:4px">REPETIÇÕES (3×3 + SÁBADOS)</div><table><tr><th></th><th>Barra</th><th>Flex.</th><th>Agach.</th><th>Total</th></tr><tr><td>Hoje</td>${row(hj)}</tr><tr><td>Geral</td>${row(gr)}</tr></table>
  <div class="sm" style="margin-top:8px">${nd}/${P.length} treinos 3×3 concluídos · ${g3} de ${pr} reps do 3×3</div></div>
  <div class="card"><div class="lab" style="margin-bottom:4px">PREVISÃO · 13 SEMANAS</div>${wk}</div>`;
@@ -146,15 +149,15 @@ function vC(){
  <div class="g7">${['S','T','Q','Q','S','S','D'].map(x=>`<span>${x}</span>`).join('')}${g}</div>
  <div class="sm" style="margin-top:8px">N = nível do 3×3 · ★ = Meet Yourself Saturday. Verde: concluído · Dourado cheio: parcial · Contorno dourado: previsto · Vermelho: perdido · Cinza: treino extra.</div></div>
  <div class="card"><div class="lab">${fd(cs).toUpperCase()}</div>${rs.length?rs.map(det).join(''):'<div class="sm" style="margin-top:6px">Nenhum treino registrado nesta data.</div>'}
- ${hbl(cs)}${p&&st(cs)!='done'?`<div class="sm">Previsto: semana ${p.w} · nível ${p.l}.</div><button class="btn g" onclick="pick('${cs}')">Ir para este treino</button>`:''}
+ ${hbl(cs)}${bdl(cs)}${p&&st(cs)!='done'?`<div class="sm">Previsto: semana ${p.w} · nível ${p.l}.</div><button class="btn g" onclick="pick('${cs}')">Ir para este treino</button>`:''}
  ${isSat(cs)&&!rs.some(h=>h.k=='w')?`<div class="sm">Sábado de Meet Yourself Saturday.</div><button class="btn g" onclick="tab='w';home()">Abrir Meet Yourself Saturday</button>`:''}</div>`;
 }
 function nextSat(){let d=new Date();if(iso(d)<SAT0)d=dt(SAT0);while(d.getDay()!=6)d.setDate(d.getDate()+1);return iso(d)}
 function vW(){
  const w=ws&&WD(ws);let h='';
  if(S.dw){const x=WD(S.dw.w);h+=`<div class="card dn"><div class="lab">EM ANDAMENTO</div><b>${x.n}</b> · ${x.f[S.dw.fi].l}<button class="btn" onclick="wod()">RETOMAR</button></div>`}
- h+=`<div class="card"><div class="lab">MEET YOURSELF SATURDAY</div><div class="sm" style="margin:6px 0">Sábados a partir de 02/01/2027. Próximo: <b>${fd(nextSat())}</b>. ${nextSat()<'2027-04-03'?'Plano: Murph (jan a mar).':'Plano: variar os WODs.'} Escolha o treino:</div>${WODS.map(x=>`<button class="cp${ws==x.id?' on':''}" onclick="ws='${x.id}';wf=0;home()">${x.n}</button>`).join('')}</div>`;
- if(w)h+=`<div class="card"><b>${w.n}</b><div class="sm" style="margin:4px 0 8px">${w.d}</div>${w.f.map((f,i)=>`<button class="cp${wf==i?' on':''}" onclick="wf=${i};home()">${f.l}</button>`).join('')}
+ h+=`<div class="card"><div class="lab">MEET YOURSELF SATURDAY</div><div class="sm" style="margin:6px 0">Sábados a partir de 02/01/2027. Próximo: <b>${fd(nextSat())}</b>. ${nextSat()<'2027-04-03'?'Plano: Murph (jan a mar).':'Plano: variar os WODs.'} Escolha o treino:</div><div class="chips">${WODS.map(x=>`<button class="cp${ws==x.id?' on':''}" onclick="ws='${x.id}';wf=0;home()">${x.n}</button>`).join('')}</div></div>`;
+ if(w)h+=`<div class="card"><b>${w.n}</b><div class="sm" style="margin:4px 0 8px">${w.d}</div><div class="chips">${w.f.map((f,i)=>`<button class="cp${wf==i?' on':''}" onclick="wf=${i};home()">${f.l}</button>`).join('')}</div>
  ${S.dw?'<div class="sm" style="margin-top:8px">Conclua ou descarte o treino em andamento para iniciar outro.</div>':'<button class="btn" onclick="startW()">INICIAR</button>'}</div>`;
  return h;
 }
@@ -254,10 +257,8 @@ function setP(p){S.pal=p;save();applyPal();home()}
 const bkName=()=>'treino3x3-backup-'+iso(new Date())+'.json';
 function bkTxt(){S.lb=Date.now();save();return JSON.stringify({app:'treino3x3',exp:new Date().toISOString(),data:S})}
 function bkMsg(t){const e=$('bm');if(e)e.textContent=t}
-async function bkDl(){const t=bkTxt();try{const d=window.claude&&await window.claude.use('downloads');if(d){await d.save({filename:bkName(),data:t});bkMsg('Backup salvo ✓');return}}catch(e){if(e&&e.code=='declined')return;bkMsg('Não foi possível salvar o arquivo. Use "Copiar como texto".');return}
-try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'application/json'}));a.download=bkName();document.body.appendChild(a);a.click();a.remove();bkMsg('Arquivo gerado ✓ Se não baixou, use "Copiar como texto".')}catch(e){bkMsg('Não foi possível baixar. Use "Copiar como texto".')}}
 async function bkCp(){const t=bkTxt(),e=$('bt');e.value=t;try{await navigator.clipboard.writeText(t)}catch(x){e.select();document.execCommand('copy')}bkMsg('Texto copiado ✓ Cole em Notas ou envie para você mesmo.')}
-function imp(txt){try{const j=JSON.parse(txt),d=j.data||j;if(!d||!Array.isArray(d.hist))throw 0;const key=h=>h.d+'|'+(h.p||h.w),ks=new Set(S.hist.map(key));let n=0;d.hist.forEach(h=>{if(!ks.has(key(h))){S.hist.push(h);ks.add(key(h));n++}});S.hist.sort((a,b)=>a.d-b.d);if(Array.isArray(d.hb)){const ids=new Set(S.hb.map(h=>h.id));d.hb.forEach(h=>{if(!ids.has(h.id))S.hb.push(h)})}if(d.hl)Object.keys(d.hl).forEach(k=>{S.hl[k]=S.hl[k]||{};Object.keys(d.hl[k]).forEach(i=>{S.hl[k][i]=Math.max(S.hl[k][i]||0,d.hl[k][i])})});save();bkMsg(n+' treino(s) importado(s) ✓')}catch(e){bkMsg('Arquivo ou texto inválido.')}}
+function imp(txt){try{const j=JSON.parse(txt),d=j.data||j;if(!d||!Array.isArray(d.hist))throw 0;const key=h=>h.d+'|'+(h.p||h.w),ks=new Set(S.hist.map(key));let n=0;d.hist.forEach(h=>{if(!ks.has(key(h))){S.hist.push(h);ks.add(key(h));n++}});S.hist.sort((a,b)=>a.d-b.d);if(d.wt)Object.keys(d.wt).forEach(k=>{if(S.wt[k]==null)S.wt[k]=d.wt[k]});if(Array.isArray(d.sf)){const si=new Set(S.sf.map(x=>x.id));d.sf.forEach(x=>{if(!si.has(x.id)){S.sf.push(x);si.add(x.id)}});S.sf.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0)}if(Array.isArray(d.hb)){const ids=new Set(S.hb.map(h=>h.id));d.hb.forEach(h=>{if(!ids.has(h.id))S.hb.push(h)})}if(d.hl)Object.keys(d.hl).forEach(k=>{S.hl[k]=S.hl[k]||{};Object.keys(d.hl[k]).forEach(i=>{S.hl[k][i]=Math.max(S.hl[k][i]||0,d.hl[k][i])})});save();bkMsg(n+' treino(s) importado(s) ✓')}catch(e){bkMsg('Arquivo ou texto inválido.')}}
 function impF(i){const f=i.files[0];if(f)f.text().then(imp)}
 function impT(){imp($('bt').value)}
 function vA(){return `<div class="card"><div class="lab" style="margin-bottom:6px">PALETA DE CORES</div>${PALS.map(p=>`<button class="cp${(S.pal==null?'verdeneg':S.pal)==p[0]?' on':''}" style="width:100%;text-align:left;padding:10px;margin:3px 0" onclick="setP('${p[0]}')">${p[2].map(c=>`<i style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${c};margin-right:4px;border:1px solid #888;vertical-align:middle"></i>`).join('')} ${p[1]}</button>`).join('')}</div>
@@ -286,7 +287,7 @@ setInterval(rb,30000);
 function hbl(d){const l=S.hb.filter(h=>hv(h.id,d)>0).map(h=>esc(h.n)+(h.t=='c'?' ✓':' '+hv(h.id,d)+'/'+h.g+' '+esc(h.u)));return l.length?`<div class="sm" style="margin-top:8px"><b>Hábitos:</b> ${l.join(' · ')}</div>`:''}
 function hed(id,k,v){const h=S.hb.find(x=>x.id==id);if(!h)return;if(k=='g')v=Math.max(1,+v||1);h[k]=v;save();home()}
 function hdel(id){if(!HC[id]){HC={};HC[id]=1;home();return}S.hb=S.hb.filter(h=>h.id!=id);HC={};save();home()}
-function hnew(){const n=$('hn').value.trim();if(!n)return;const t=$('ht').value,u=$('hu').value.trim();S.hb.push({id:'h'+Date.now(),n,t,g:t=='c'?1:Math.max(1,+$('hg').value||1),u,st:t=='c'?[]:(/min/i.test(u)?[5,10,15]:[1,5,10]),rm:''});save();home()}
+function hnew(){const n=$('hn').value.trim();if(!n)return;const t=$('ht').value,u=$('hu').value.trim();S.hb.push({id:uid('h'),n,t,g:t=='c'?1:Math.max(1,+$('hg').value||1),u,st:t=='c'?[]:(/min/i.test(u)?[5,10,15]:[1,5,10]),rm:''});save();home()}
 function hmsg(t){const e=$('hm');if(e)e.textContent=t}
 function icsTxt(){const d=new Date(),st=d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z',cl=x=>String(x).replace(/[,;\\]/g,' '),ymd=s=>s.replace(/-/g,''),tt=x=>x.replace(':','')+'00';
  const ev=(uid,sum,day,time,dur,extra,al)=>['BEGIN:VEVENT','UID:'+uid+'@treino3x3','DTSTAMP:'+st,'DTSTART:'+ymd(day)+'T'+tt(time),'DURATION:'+dur,...extra,'SUMMARY:'+cl(sum),'BEGIN:VALARM','TRIGGER:'+al,'ACTION:DISPLAY','DESCRIPTION:'+cl(sum),'END:VALARM','END:VEVENT'].join('\r\n');
@@ -296,9 +297,6 @@ function icsTxt(){const d=new Date(),st=d.toISOString().replace(/[-:]/g,'').spli
  L.push(ev('sat-murph','Meet Yourself Saturday · Murph',SAT0,sa,'PT90M',['RRULE:FREQ=WEEKLY;COUNT=13'],'-PT30M'));
  L.push(ev('sat-wod','Meet Yourself Saturday · escolha o WOD','2027-04-03',sa,'PT90M',['RRULE:FREQ=WEEKLY'],'-PT30M'));
  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Treino3x3//PT','CALSCALE:GREGORIAN',...L,'END:VCALENDAR'].join('\r\n')}
-async function icsDl(){const t=icsTxt(),f='lembretes-treino.ics';
- try{const d=window.claude&&await window.claude.use('downloads');if(d){await d.save({filename:f,data:t});return}}catch(e){if(e&&e.code=='declined')return}
- try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/calendar;charset=utf-8'}));a.download=f;document.body.appendChild(a);a.click();a.remove();hmsg('Arquivo gerado. Abra-o para adicionar ao Calendário. Se nada aconteceu, este recurso só funciona no app instalado.')}catch(e){hmsg('Não foi possível gerar o arquivo neste ambiente.')}}
 function vH(){
  const days=[...Array(7)].map((_,i)=>dstr(T,i-6));
  const lst=S.hb.map(h=>{const v=hv(h.id,T),ok=hok(h,T);
@@ -310,6 +308,62 @@ function vH(){
  <div class="lab" style="margin:12px 0 6px">NOVO HÁBITO</div><input class="in" id="hn" placeholder="Nome" style="width:100%;margin-bottom:6px"><div style="display:flex;gap:6px"><select class="in" id="ht"><option value="c">Marcar</option><option value="n">Contar</option></select><input class="in" id="hg" type="number" placeholder="Meta" style="width:80px"><input class="in" id="hu" placeholder="Unidade" style="flex:1;min-width:0"></div><button class="btn g" onclick="hnew()">Adicionar hábito</button></div>`:'';
  return `${lst}<button class="btn g" onclick="HE=!HE;home()">${HE?'Fechar gerenciamento':'✎ Gerenciar hábitos e lembretes'}</button>${ed}
  <div class="card"><div class="lab" style="margin-bottom:6px">LEMBRETES</div><div class="sm">Com o app aberto, um aviso aparece no horário de cada hábito pendente. Para avisos com o app fechado, exporte os horários para o Calendário do celular: ele passa a avisar todos os dias.</div><div class="row"><span class="lab">HORÁRIO DOS TREINOS 3×3</span><input class="in" type="time" value="${S.tt||'17:00'}" onchange="S.tt=this.value;save()"></div><div class="row"><span class="lab">HORÁRIO DO SÁBADO</span><input class="in" type="time" value="${S.ts||'07:00'}" onchange="S.ts=this.value;save()"></div><button class="btn g" onclick="icsDl()">Exportar lembretes (hábitos + treinos) para o Calendário</button><div class="sm" id="hm" style="margin-top:8px"></div></div>`}
+if(!S.wt)S.wt={};if(!S.sf)S.sf=[];
+const SF=[['pei','Peitoral'],['axi','Axilar média'],['tri','Tríceps'],['sub','Subescapular'],['abd','Abdominal'],['sup','Supra-ilíaca'],['cox','Coxa']];
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const nk=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(n)&&n>0?n:null};
+const kg=n=>n.toFixed(1).replace('.',',');
+const mmf=n=>String(Math.round(n*10)/10).replace('.',',');
+const sgn=n=>(n>0?'+':n<0?'−':'±')+mmf(Math.abs(n));
+let BC={},BM='';
+function bm(t){BM=t;const e=$('bmsg');if(e)e.textContent=t}
+const sfSum=x=>{const v=Object.values(x.f);return{n:v.length,s:s3(v)}};
+function wsave(){const d=$('wd').value||T,v=nk($('wv').value);if(!v||v>400){bm('Informe um peso válido, em kg.');return}S.wt[d]=Math.round(v*10)/10;save();BM='Peso de '+dm(d)+' salvo ✓';home()}
+function wdel(d){if(!BC[d]){BC={};BC[d]=1;home();return}delete S.wt[d];BC={};save();home()}
+function sdel(id){if(!BC[id]){BC={};BC[id]=1;home();return}S.sf=S.sf.filter(x=>x.id!=id);BC={};save();home()}
+const rv=(id,max)=>{const raw=$(id).value.trim();if(!raw)return null;const n=nk(raw);return n&&n<=max?n:NaN};
+function ssave(){const f={},bad=[];
+ SF.forEach(([k,l])=>{const v=rv('sf_'+k,100);if(v!==null){if(isNaN(v))bad.push(l);else f[k]=v}});
+ const bf=rv('sbf',80),w=rv('sw',400),d=$('sd').value||T,note=$('sn').value.trim();
+ if(bf!==null&&isNaN(bf))bad.push('% de gordura');if(w!==null&&isNaN(w))bad.push('peso');
+ if(bad.length){bm('Valor inválido em: '+bad.join(', ')+'.');return}
+ if(!Object.keys(f).length&&bf===null){bm('Informe ao menos uma dobra ou o % de gordura.');return}
+ S.sf.push({id:uid('s'),d,f,bf:bf||null,w:w||null,note});S.sf.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+ if(w&&S.wt[d]==null)S.wt[d]=Math.round(w*10)/10;
+ save();BM='Medição de '+dm(d)+' salva ✓';home()}
+function wchart(a){
+ if(a.length<2)return '<div class="sm">O gráfico aparece a partir de 2 registros.</div>';
+ const W0=300,H0=112,px=34,py=12,vs=a.map(x=>x[1]),mn=Math.min(...vs),mx=Math.max(...vs),r=(mx-mn)||1,lo=mn-r*.15,hi=mx+r*.15;
+ const X=i=>px+(W0-px-8)*(i/(a.length-1)),Y=v=>py+(H0-2*py-8)*(1-(v-lo)/(hi-lo));
+ const pts=a.map((x,i)=>X(i).toFixed(1)+','+Y(x[1]).toFixed(1)).join(' ');
+ return `<svg viewBox="0 0 ${W0} ${H0}" style="width:100%;height:auto"><polyline points="${pts}" fill="none" stroke-width="2" style="stroke:var(--grn)"/>${a.length<=45?a.map((x,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(x[1]).toFixed(1)}" r="2.5" style="fill:var(--grn)"/>`).join(''):''}<text x="2" y="${(Y(mx)+4).toFixed(1)}" font-size="10" style="fill:var(--mut)">${kg(mx)}</text><text x="2" y="${(Y(mn)+4).toFixed(1)}" font-size="10" style="fill:var(--mut)">${kg(mn)}</text><text x="${px}" y="${H0-1}" font-size="9" style="fill:var(--mut)">${dm(a[0][0])}</text><text x="${W0-8}" y="${H0-1}" font-size="9" text-anchor="end" style="fill:var(--mut)">${dm(a[a.length-1][0])}</text></svg>`}
+function vB(){
+ const e=Object.keys(S.wt).sort().map(k=>[k,S.wt[k]]),last=e[e.length-1],first=e[0];
+ const w7=e.filter(x=>x[0]>dstr(T,-7)&&x[0]<=T),avg=w7.length?s3(w7.map(x=>x[1]))/w7.length:null;
+ const vs=e.map(x=>x[1]);
+ const stats=e.length?`<div class="row"><span class="lab">ÚLTIMO REGISTRO</span><b>${kg(last[1])} kg · ${dm(last[0])}</b></div>${avg!==null?`<div class="row"><span class="lab">MÉDIA DOS ÚLTIMOS 7 DIAS</span><b>${kg(avg)} kg (${w7.length} reg.)</b></div>`:''}${e.length>1?`<div class="row"><span class="lab">VARIAÇÃO DESDE ${dm(first[0])}</span><b>${sgn(last[1]-first[1])} kg</b></div><div class="row"><span class="lab">MÍNIMO / MÁXIMO</span><b>${kg(Math.min(...vs))} / ${kg(Math.max(...vs))} kg</b></div>`:''}`:'<div class="sm">Nenhum peso registrado ainda.</div>';
+ const lst=e.slice(-10).reverse().map(x=>{const i=e.findIndex(y=>y[0]==x[0]),pv=i>0?e[i-1][1]:null;return `<div class="row"><span>${fd(x[0])}</span><span><b>${kg(x[1])} kg</b>${pv!==null?` <span class="sm">${sgn(x[1]-pv)}</span>`:''} <button class="cp${BC[x[0]]?' miss':''}" onclick="wdel('${x[0]}')">${BC[x[0]]?'Confirmar':'Excluir'}</button></span></div>`}).join('');
+ const sf=S.sf,cur=sf[sf.length-1],prev=sf[sf.length-2];
+ const cmp=cur&&prev?`<div class="lab" style="margin:12px 0 4px">ÚLTIMA × ANTERIOR (mm)</div><table><tr><th></th><th>${dm(prev.d)}</th><th>${dm(cur.d)}</th><th>Δ</th></tr>${SF.filter(([k])=>cur.f[k]!=null).map(([k,l])=>`<tr><td>${l}</td><td>${prev.f[k]!=null?mmf(prev.f[k]):'—'}</td><td>${mmf(cur.f[k])}</td><td>${prev.f[k]!=null?sgn(cur.f[k]-prev.f[k]):'—'}</td></tr>`).join('')}</table>`:'';
+ const hist=sf.slice().reverse().map(x=>{const q=sfSum(x),i=sf.findIndex(y=>y.id==x.id);let pv=null;for(let j=i-1;j>=0;j--){if(sfSum(sf[j]).n==q.n){pv=sf[j];break}}
+  return `<div style="margin:8px 0;padding-top:8px;border-top:1px solid var(--line)"><div class="row" style="border:0;padding:0"><b>${fd(x.d)}</b><button class="cp${BC[x.id]?' miss':''}" onclick="sdel('${x.id}')">${BC[x.id]?'Confirmar':'Excluir'}</button></div><div class="sm">${q.n?`Σ ${q.n} dobra(s): <b>${mmf(q.s)} mm</b>${pv?` (${sgn(q.s-sfSum(pv).s)} vs ${dm(pv.d)})`:''}`:''}${x.bf?` · ${mmf(x.bf)}% de gordura`:''}${x.w?` · ${kg(x.w)} kg`:''}<br>${SF.filter(([k])=>x.f[k]!=null).map(([k,l])=>l.slice(0,3)+' '+mmf(x.f[k])).join(' · ')}${x.note?'<br>'+esc(x.note):''}</div></div>`}).join('')||'<div class="sm">Nenhuma medição registrada ainda.</div>';
+ return `<div class="card"><div class="lab">PESO DIÁRIO</div><div style="display:flex;gap:6px;margin:8px 0"><input class="in" id="wd" type="date" value="${T}" style="flex:1;min-width:0"><input class="in" id="wv" type="text" inputmode="decimal" placeholder="kg" value="${S.wt[T]!=null?kg(S.wt[T]):''}" style="width:84px"><button class="cp" style="margin:0;padding:8px 12px" onclick="wsave()">Salvar</button></div>
+ <div class="sm" id="bmsg">${BM}</div>${wchart(e.slice(-60))}${stats}</div>
+ ${e.length?`<div class="card"><div class="lab" style="margin-bottom:4px">ÚLTIMOS REGISTROS</div>${lst}</div>`:''}
+ <div class="card"><div class="lab">DOBRAS CUTÂNEAS · CONSULTA</div><div class="sm" style="margin:6px 0">Preencha em milímetros o que foi medido; o que ficar em branco é ignorado.</div>
+ <input class="in" id="sd" type="date" value="${T}" style="width:100%;margin-bottom:6px">
+ <div class="sfg">${SF.map(([k,l])=>`<label class="sm">${l}<input class="in" id="sf_${k}" type="text" inputmode="decimal" placeholder="mm" style="width:100%"></label>`).join('')}<label class="sm">% de gordura (relatório)<input class="in" id="sbf" type="text" inputmode="decimal" placeholder="%" style="width:100%"></label><label class="sm">Peso na consulta (kg)<input class="in" id="sw" type="text" inputmode="decimal" placeholder="kg" style="width:100%"></label></div>
+ <input class="in" id="sn" placeholder="Observações (opcional)" style="width:100%;margin-top:2px">
+ <button class="btn" onclick="ssave()">SALVAR MEDIÇÃO</button></div>
+ <div class="card"><div class="lab" style="margin-bottom:4px">HISTÓRICO DE MEDIÇÕES</div>${cmp}${hist}</div>
+ <div class="sm" style="margin:4px 4px 12px">Os dados ficam só neste aparelho e entram no backup de Ajustes.</div>`}
+function bdl(d){const l=[];if(S.wt[d]!=null)l.push('Peso '+kg(S.wt[d])+' kg');S.sf.filter(x=>x.d==d).forEach(x=>{const q=sfSum(x);l.push('Dobras Σ '+mmf(q.s)+' mm ('+q.n+')'+(x.bf?' · '+mmf(x.bf)+'% de gordura':''))});return l.length?`<div class="sm" style="margin-top:8px"><b>Corpo:</b> ${l.join(' · ')}</div>`:''}
+async function saveFile(name,text,type){
+ try{const d=window.claude&&await window.claude.use('downloads');if(d){await d.save({filename:name,data:text});return'ok'}}catch(e){if(e&&e.code=='declined')return'cancel'}
+ try{const f=new File([text],name,{type});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return'ok'}}catch(e){if(e&&e.name=='AbortError')return'cancel'}
+ try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();return'link'}catch(e){return'fail'}}
+async function bkDl(){const r=await saveFile(bkName(),bkTxt(),'application/json');bkMsg(r=='ok'?'Backup salvo ✓':r=='link'?'Arquivo gerado ✓ Se não baixou, use "Copiar como texto".':r=='cancel'?'':'Não foi possível salvar. Use "Copiar como texto".')}
+async function icsDl(){const r=await saveFile('lembretes-treino.ics',icsTxt(),'text/calendar');hmsg(r=='ok'?'Arquivo enviado ✓ Abra-o para adicionar ao Calendário.':r=='link'?'Arquivo gerado. Abra-o para adicionar ao Calendário.':r=='cancel'?'':'Não foi possível gerar o arquivo neste ambiente.')}
 applyPal();
 S.dw?(tab='w',home()):home();
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
