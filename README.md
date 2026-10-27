@@ -14,7 +14,7 @@ Mantenha todos juntos, na mesma pasta, no mesmo endereço.
 Abra o endereço no Safari > Compartilhar > Adicionar à Tela de Início.
 
 ## Atualizar o app depois
-Substitua index.html no repositório. Se mudar outros arquivos, altere o número da versão em sw.js (por exemplo, de treino3x3-v13 para treino3x3-v11).
+Substitua index.html no repositório. Se mudar outros arquivos, altere o número da versão em sw.js (por exemplo, de treino3x3-v14 para treino3x3-v11).
 
 ## Dados
 Ficam no aparelho (localStorage). Antes de trocar de endereço ou aparelho, faça o backup em Ajustes e restaure no novo.
